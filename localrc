@@ -1,0 +1,53 @@
+# Originally from http://www.sebastien-han.fr/blog/2013/08/08/devstack-in-1-minute/
+# Misc
+#RECLONE=True
+#HOST_IP=10.66.9.39
+GIT_BASE=https://git.openstack.org
+DATABASE_PASSWORD=password  
+ADMIN_PASSWORD=password  
+SERVICE_PASSWORD=password  
+SERVICE_TOKEN=password  
+RABBIT_PASSWORD=password
+
+# Enable Logging
+
+LOGFILE=/opt/stack/logs/stack.sh.log  
+VERBOSE=True  
+LOG_COLOR=True  
+SCREEN_LOGDIR=/opt/stack/logs
+
+KEYSTONE_TOKEN_FORMAT=UUID
+
+# Pre-requisite
+ENABLED_SERVICES=rabbit,mysql,key
+
+# Horizon (always use the trunk)
+#ENABLED_SERVICES+=,horizon  
+#HORIZON_REPO=https://github.com/openstack/horizon  
+#HORIZON_BRANCH=master
+
+# Nova
+ENABLED_SERVICES+=,n-api,n-crt,n-obj,n-cpu,n-cond,n-sch  
+IMAGE_URLS+=",https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img"
+
+# Glance
+ENABLED_SERVICES+=,g-api,g-reg
+
+# Neutron
+ENABLED_SERVICES+=,q-svc,q-agt,q-dhcp,q-l3,q-meta,neutron
+
+# Cinder
+#ENABLED_SERVICES+=,cinder,c-api,c-vol,c-sch
+
+# Tempest
+ENABLED_SERVICES+=,tempest
+
+# Barbican
+ENABLED_SERVICES+=,barbican
+
+# Neutron LBaaS
+enable_plugin neutron-lbaas https://git.openstack.org/openstack/neutron-lbaas.git
+
+ENABLED_SERVICES+=,q-lbaasv2
+
+#OFFLINE=True
