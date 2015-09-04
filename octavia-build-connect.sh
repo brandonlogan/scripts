@@ -88,17 +88,24 @@ function add_member {
     $neutron lbaas-member-create --address ${ip} --subnet ${subnet} --protocol-port 80 pool1
 }
 
+function create_member_on_network {
+    net_name=$1
+    subnet_name=$2
+    member_name=$3
+    boot_server ${member_name} ${net_name}
+    member_ip=$(get_server_ip ${member_name} ${net_name})
+    start_web_service ${member_name} ${net_name}
+    add_member ${member_ip} ${subnet_name}
+    wait_for_lb_active "lb1"
+}
+
 function create_network_and_member {
     net_name=$1
     subnet_name=$2
     cidr=$3
     member_name=$4
     create_network_and_subnet ${net_name} ${subnet_name} ${cidr}
-    boot_server ${member_name} ${net_name}
-    member_ip=$(get_server_ip ${member_name} ${net_name})
-    start_web_service ${member_name} ${net_name}
-    add_member ${member_ip} ${subnet_name}
-    wait_for_lb_active "lb1"
+    create_member_on_network ${member_name} ${net_name} ${subnet_name}
 }
 
 function validate_connection {
@@ -123,6 +130,8 @@ member_name="member1"
 subnet_name="user-subnet"
 cidr="10.2.2.0/24"
 create_network_and_member ${net_name} ${subnet_name} ${cidr} ${member_name}
+create_network_and_member "user-net2" "user-subnet2" "10.3.3.0/24" "member2"
+create_member_on_network ${net_name} ${subnet_name} "member3"
 
 validate_connection ${vip} ${member_name}
 
