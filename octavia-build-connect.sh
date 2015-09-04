@@ -105,7 +105,7 @@ function create_network_and_member {
     cidr=$3
     member_name=$4
     create_network_and_subnet ${net_name} ${subnet_name} ${cidr}
-    create_member_on_network ${member_name} ${net_name} ${subnet_name}
+    create_member_on_network ${net_name} ${subnet_name} ${member_name}
 }
 
 function validate_connection {
