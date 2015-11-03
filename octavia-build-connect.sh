@@ -20,13 +20,18 @@ function get_server_ip {
     name=$1
     net_name=$2
     member_ip=$($nova show ${name} | awk "/${net_name} "'network/ {print $5}')
+    if [[ $str == *[':' ]]
+    then
+        member_ip=$($nova show ${name} | awk "/${net_name} "'network/ {print $6}') 
+    fi
+    member_ip="${member_ip//,}"
     echo $member_ip
 }
 
 function boot_server {
     name=$1
     net_name=$2
-    $nova boot --image $($nova image-list | awk '/cirros/ {print $2}') --flavor 1 --nic net-id=$($nova net-list | awk "/${net_name}/ "'{print $2}') ${name}
+    $nova boot --image $($nova image-list | awk '/-disk/ {print $2}') --flavor 1 --nic net-id=$($nova net-list | awk "/${net_name}/ "'{print $2}') ${name}
     status=$($nova show ${name} | awk '/status/ {print $4}')
     while [ "$status" != "ACTIVE" ]
     do
@@ -38,17 +43,17 @@ function boot_server {
 function start_web_service {
     name=$1
     net_name=$2
-    ip=$($nova show ${name} | awk "/${net_name}"' network/ {print $5}')
+    member_ip=$3
     net_id=$($neutron net-show ${net_name} | awk '/ id / {print $4}')
     ns_name="qdhcp-$net_id"
     SERVE_TRAFFIC="while true; do { echo -e 'HTTP/1.1 200 OK\r\n'; echo -e '${name}'; } | sudo nc -l -p 80; done &"
-    echo "sudo ip netns exec $ns_name sshpass -p cubswin:\) ssh -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -oCheckHostIP=no cirros@$ip"
-    sudo ip netns exec $ns_name sshpass -p cubswin:\) ssh -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -oCheckHostIP=no cirros@$ip $SERVE_TRAFFIC
+    echo "sudo ip netns exec $ns_name sshpass -p cubswin:\) ssh -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -oCheckHostIP=no cirros@$member_ip"
+    sudo ip netns exec $ns_name sshpass -p cubswin:\) ssh -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -oCheckHostIP=no cirros@$member_ip $SERVE_TRAFFIC
     while [ $? -ne 0 ]
     do
         sleep 10
-        echo "sudo ip netns exec $ns_name sshpass -p cubswin:\) ssh -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -oCheckHostIP=no cirros@$ip"
-        sudo ip netns exec $ns_name sshpass -p cubswin:\) ssh -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -oCheckHostIP=no cirros@$ip $SERVE_TRAFFIC
+        echo "sudo ip netns exec $ns_name sshpass -p cubswin:\) ssh -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -oCheckHostIP=no cirros@$member_ip"
+        sudo ip netns exec $ns_name sshpass -p cubswin:\) ssh -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -oCheckHostIP=no cirros@$member_ip $SERVE_TRAFFIC
     done
 }
 
@@ -92,9 +97,9 @@ function create_member_on_network {
     net_name=$1
     subnet_name=$2
     member_name=$3
-    boot_server ${member_name} ${net_name}
+    #boot_server ${member_name} ${net_name}
     member_ip=$(get_server_ip ${member_name} ${net_name})
-    start_web_service ${member_name} ${net_name}
+    start_web_service ${member_name} ${net_name} ${member_ip}
     add_member ${member_ip} ${subnet_name}
     wait_for_lb_active "lb1"
 }
@@ -124,14 +129,23 @@ function validate_connection {
 add_security_group_rules
 create_lb "private-subnet"
 vip=$(get_vip)
+create_member_on_network "private" "private-subnet" "member1"
+add_member $(get_server_ip 'member1' 'private') 'private-subnet'
+wait_for_lb_active 'lb1'
 
 net_name="user-net"
-member_name="member1"
+member_name="member2"
 subnet_name="user-subnet"
 cidr="10.2.2.0/24"
-create_network_and_member ${net_name} ${subnet_name} ${cidr} ${member_name}
-create_network_and_member "user-net2" "user-subnet2" "10.3.3.0/24" "member2"
-create_member_on_network ${net_name} ${subnet_name} "member3"
+#create_network_and_member ${net_name} ${subnet_name} ${cidr} ${member_name}
+#create_network_and_member "user-net2" "user-subnet2" "10.3.3.0/24" "member3"
+#create_member_on_network ${net_name} ${subnet_name} "member4"
+#add_member $(get_server_ip 'member2' 'user-net') 'user-subnet'
+#wait_for_lb_active 'lb1'
+#add_member $(get_server_ip 'member3' 'user-net2') 'user-subnet2'
+#wait_for_lb_active 'lb1'
+#add_member $(get_server_ip 'member4' 'user-net') 'user-subnet'
+#wait_for_lb_active 'lb1'
 
 validate_connection ${vip} ${member_name}
 
