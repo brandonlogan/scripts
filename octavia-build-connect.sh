@@ -20,7 +20,7 @@ function get_server_ip {
     name=$1
     net_name=$2
     member_ip=$($nova show ${name} | awk "/${net_name} "'network/ {print $5}')
-    if [[ $str == *[':' ]]
+    if [[ $member_ip =~ ":" ]]
     then
         member_ip=$($nova show ${name} | awk "/${net_name} "'network/ {print $6}') 
     fi
@@ -97,7 +97,7 @@ function create_member_on_network {
     net_name=$1
     subnet_name=$2
     member_name=$3
-    #boot_server ${member_name} ${net_name}
+    boot_server ${member_name} ${net_name}
     member_ip=$(get_server_ip ${member_name} ${net_name})
     start_web_service ${member_name} ${net_name} ${member_ip}
     add_member ${member_ip} ${subnet_name}
