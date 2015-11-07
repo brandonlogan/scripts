@@ -137,9 +137,9 @@ net_name="user-net"
 member_name="member2"
 subnet_name="user-subnet"
 cidr="10.2.2.0/24"
-#create_network_and_member ${net_name} ${subnet_name} ${cidr} ${member_name}
-#create_network_and_member "user-net2" "user-subnet2" "10.3.3.0/24" "member3"
-#create_member_on_network ${net_name} ${subnet_name} "member4"
+create_network_and_member ${net_name} ${subnet_name} ${cidr} ${member_name}
+create_network_and_member "user-net2" "user-subnet2" "10.3.3.0/24" "member3"
+create_member_on_network ${net_name} ${subnet_name} "member4"
 #add_member $(get_server_ip 'member2' 'user-net') 'user-subnet'
 #wait_for_lb_active 'lb1'
 #add_member $(get_server_ip 'member3' 'user-net2') 'user-subnet2'
