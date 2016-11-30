@@ -30,19 +30,29 @@ def rename_kwargs(**renamed_kwargs):
 
 @rename_kwargs(a='z')
 class C(object):
-    def __init__(self, x, y, z=None):
+    def __init__(self, x, z=None):
         self.x = x
-        self.y = y
         self.z = z
 
 
+def log_reads(instance):
+    print("instance.a = %d" % instance.a)
+    print("instance.z = %d" % instance.z)
+    print("instance.x = %d" % instance.x)
+
+def set_attribute(instance, attribute):
+    print("Setting instance.%s = 4" % attribute)
+    setattr(instance, attribute, 4)
+
 if __name__ == '__main__':
-    x = C(1,2, a=3)
-    print("x.a = %d" % x.a)
-    print("x.z = %d" % x.z)
-    print("x.x = %d" % x.x)
-    print("Setting x.a = 4")
-    x.a = 4
-    print("x.a = %d" % x.a)
-    print("x.z = %d" % x.z)
-    print("x.x = %d" % x.x)
+    print("Passing old parameters to class: C(1, a=3)")
+    old_style = C(1, a=3)
+    log_reads(old_style)
+    set_attribute(old_style, 'a')
+    log_reads(old_style)
+
+    print("\nPassing new parameters to class: C(1, z=5)")
+    new_style = C(1, z=5)
+    log_reads(new_style)
+    set_attribute(new_style, 'z')
+    log_reads(new_style)
