@@ -1,0 +1,14 @@
+[user]
+	email = johnbrandonlogan@gmail.com
+	name = Brandon Logan
+[core]
+	excludesfile = /home/brandon/.gitignore
+	editor = vim
+	page = less -x1,5
+[gitreview]
+	username = brandon-logan
+[color]
+	ui = auto
+[alias]
+	log-pretty = log --pretty=oneline --abbrev-commit
+	log-short = log --pretty=oneline --abbrev-commit

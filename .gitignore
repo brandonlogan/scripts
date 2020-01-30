@@ -1,0 +1,10 @@
+*.idea
+*~
+tempest.log
+amphora-x64-haproxy*
+.python-version
+.eggs
+.venv
+.vagrant
+*.log
+.pytest_cache
